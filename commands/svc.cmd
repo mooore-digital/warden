@@ -18,6 +18,11 @@ DOCKER_COMPOSE_ARGS=()
 DOCKER_COMPOSE_ARGS+=("-f")
 DOCKER_COMPOSE_ARGS+=("${WARDEN_DIR}/docker/docker-compose.yml")
 
+if [[ -f "${WARDEN_HOME_DIR}/docker/docker-compose.yml" ]]; then
+    DOCKER_COMPOSE_ARGS+=("-f")
+    DOCKER_COMPOSE_ARGS+=("${WARDEN_HOME_DIR}/docker/docker-compose.yml")
+fi
+
 ## special handling when 'svc up' is run
 if [[ "${WARDEN_PARAMS[0]}" == "up" ]]; then
 
