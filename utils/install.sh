@@ -2,11 +2,13 @@
 [[ ! ${WARDEN_DIR} ]] && >&2 echo -e "\033[31mThis script is not intended to be run directly!\033[0m" && exit 1
 
 function installSshConfig () {
-  if ! grep '## WARDEN START ##' /etc/ssh/ssh_config >/dev/null; then
-    echo "==> Configuring sshd tunnel in host ssh_config (requires sudo privileges)"
-    echo "    Note: This addition to the ssh_config file can sometimes be erased by a system"
-    echo "    upgrade requiring reconfiguring the SSH config for tunnel.warden.test."
-    cat <<-EOT | sudo tee -a /etc/ssh/ssh_config >/dev/null
+  WARDEN_SKIP_SSH_CONFIG="${WARDEN_SKIP_SSH_CONFIG:-0}"
+  if [[ "${WARDEN_SKIP_SSH_CONFIG}" -eq 0 ]]; then
+    if ! grep '## WARDEN START ##' /etc/ssh/ssh_config >/dev/null; then
+      echo "==> Configuring sshd tunnel in host ssh_config (requires sudo privileges)"
+      echo "    Note: This addition to the ssh_config file can sometimes be erased by a system"
+      echo "    upgrade requiring reconfiguring the SSH config for tunnel.warden.test."
+      cat <<-EOT | sudo tee -a /etc/ssh/ssh_config >/dev/null
 
 			## WARDEN START ##
 			Host tunnel.warden.test
@@ -16,6 +18,7 @@ function installSshConfig () {
 			IdentityFile ~/.warden/tunnel/ssh_key
 			## WARDEN END ##
 			EOT
+    fi
   fi
 }
 
