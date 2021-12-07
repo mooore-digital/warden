@@ -50,13 +50,13 @@ if [[ "${WARDEN_PARAMS[0]}" == "up" ]]; then
                   certFile: /etc/ssl/certs/${WARDEN_SERVICE_DOMAIN}.crt.pem
                   keyFile: /etc/ssl/certs/${WARDEN_SERVICE_DOMAIN}.key.pem
               certificates:
-        EOT
+		EOT
 
         for cert in $(find "${WARDEN_SSL_DIR}/certs" -type f -name "*.crt.pem" | sed -E 's#^.*/ssl/certs/(.*)\.crt\.pem$#\1#'); do
             cat >> "${WARDEN_HOME_DIR}/etc/traefik/dynamic.yml" <<-EOF
                 - certFile: /etc/ssl/certs/${cert}.crt.pem
                   keyFile: /etc/ssl/certs/${cert}.key.pem
-            EOF
+			EOF
         done
     fi
 
