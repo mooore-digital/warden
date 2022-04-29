@@ -5,7 +5,9 @@ x-volumes: &volumes
   - ${WARDEN_COMPOSER_DIR}:/home/www-data/.composer:cached
   - .${WARDEN_WEB_ROOT:-}/:/var/www/html:cached
   - bashhistory:/bash_history
-  - sshdirectory:/home/www-data/.ssh
+  - sshdirectory:/home/www-data/.ssh:rw
+  - ${WARDEN_HOME_DIR}/../.ssh/id_rsa:/home/www-data/.ssh/id_rsa:ro
+  - ${WARDEN_HOME_DIR}/../.ssh/id_rsa.pub:/home/www-data/.ssh/id_rsa.pub:ro
 
 x-extra_hosts: &extra_hosts
     - ${TRAEFIK_DOMAIN}:${TRAEFIK_ADDRESS:-0.0.0.0}
