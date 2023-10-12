@@ -12,19 +12,26 @@ readonly WARDEN_DIR="$(
   )/.." >/dev/null \
   && pwd
 )"
+
+export readonly WARDEN_BIN="${WARDEN_DIR}/bin/warden"
+export readonly DOCKER_COMPOSE_COMMAND="${DOCKER_COMPOSE_COMMAND:-"docker compose"}"
+
 source "${WARDEN_DIR}/utils/core.sh"
 source "${WARDEN_DIR}/utils/env.sh"
 
-## verify docker-compose is installed
-if ! which docker-compose >/dev/null; then
-  fatal "docker-compose could not be found; please install and try again."
+## verify docker is installed
+if ! which docker >/dev/null; then
+  fatal "docker could not be found; please install and try again."
 fi
 
-## verify docker-compose meets version constraint
-DOCKER_COMPOSE_REQUIRE="1.25.0"
-DOCKER_COMPOSE_VERSION="$(docker-compose --version | grep -oE '[0-9\.]+' | head -n1)"
-if ! test $(version ${DOCKER_COMPOSE_VERSION}) -ge $(version ${DOCKER_COMPOSE_REQUIRE}); then
-  fatal "docker-compose version should be ${DOCKER_COMPOSE_REQUIRE} or higher (${DOCKER_COMPOSE_VERSION} installed)"
+## verify docker compose meets version constraint
+if [[ "${DOCKER_COMPOSE_COMMAND}" == "docker compose" ]]; then
+  # Disable version check for experimental stuff
+  DOCKER_COMPOSE_REQUIRE="2.2.3"
+  DOCKER_COMPOSE_VERSION="$(${DOCKER_COMPOSE_COMMAND} version | grep -oE '[0-9\.]+' | head -n1)"
+  if ! test $(version ${DOCKER_COMPOSE_VERSION}) -ge $(version ${DOCKER_COMPOSE_REQUIRE}); then
+    fatal "docker compose version should be ${DOCKER_COMPOSE_REQUIRE} or higher (${DOCKER_COMPOSE_VERSION} installed)"
+  fi
 fi
 
 ## define and export global shared directory paths
@@ -45,12 +52,7 @@ if (( "$#" )); then
   ## local project directory if running within one; don't fail if it can't be found
   WARDEN_ENV_PATH="$(locateEnvPath 2>/dev/null)" || true
 
-  if [[ -f "${WARDEN_DIR}/commands/${1}.cmd" ]]; then
-    WARDEN_CMD_VERB="$1"
-    WARDEN_CMD_EXEC="${WARDEN_DIR}/commands/${1}.cmd"
-    WARDEN_CMD_HELP="${WARDEN_DIR}/commands/${1}.help"
-    shift
-  elif [[ -f "${WARDEN_ENV_PATH}/.warden/commands/${1}.cmd" ]]; then
+  if [[ -f "${WARDEN_ENV_PATH}/.warden/commands/${1}.cmd" ]]; then
     WARDEN_CMD_VERB="$1"
     WARDEN_CMD_ANYARGS+=("$1")
     WARDEN_CMD_EXEC="${WARDEN_ENV_PATH}/.warden/commands/${1}.cmd"
@@ -61,6 +63,11 @@ if (( "$#" )); then
     WARDEN_CMD_ANYARGS+=("$1")
     WARDEN_CMD_EXEC="${WARDEN_HOME_DIR}/commands/${1}.cmd"
     WARDEN_CMD_HELP="${WARDEN_HOME_DIR}/commands/${1}.help"
+    shift
+  elif [[ -f "${WARDEN_DIR}/commands/${1}.cmd" ]]; then
+    WARDEN_CMD_VERB="$1"
+    WARDEN_CMD_EXEC="${WARDEN_DIR}/commands/${1}.cmd"
+    WARDEN_CMD_HELP="${WARDEN_DIR}/commands/${1}.help"
     shift
   else
     WARDEN_HELP=1
